@@ -18,6 +18,17 @@ public class MainActivity extends AppCompatActivity {
         View view = binding.getRoot();
         setContentView(view);
 
+        loadLocations();
+    }
+
+    private void loadLocations() {
+        LocationService locationService = new LocationService();
+        locationService.loadLocations();
+    }
+
+    private void tcNoValidate(TcNoValidateDto dto) {
+        TcNoService tcNoService = new TcNoService();
+        tcNoService.tcNoValidate(dto);
     }
 
     public void connect(View view) {

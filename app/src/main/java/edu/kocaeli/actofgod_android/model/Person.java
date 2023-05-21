@@ -3,8 +3,9 @@ package edu.kocaeli.actofgod_android.model;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
+import java.util.Objects;
 
-public class TcNoValidateDto implements Serializable {
+public class Person implements Serializable {
     @SerializedName("firstName")
     private String firstName;
     @SerializedName("lastName")
@@ -13,18 +14,18 @@ public class TcNoValidateDto implements Serializable {
     private String birthYear;
     @SerializedName("tcNo")
     private String tcNo;
+    @SerializedName("androidId")
+    private String androidId;
 
-    public TcNoValidateDto(String firstName,
-                           String lastName,
-                           String birthYear,
-                           String tcNo) {
+    public Person(String firstName, String lastName, String birthYear, String tcNo, String androidId) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthYear = birthYear;
         this.tcNo = tcNo;
+        this.androidId = androidId;
     }
 
-    public TcNoValidateDto() {
+    public Person() {
     }
 
     public String getFirstName() {
@@ -59,13 +60,24 @@ public class TcNoValidateDto implements Serializable {
         this.tcNo = tcNo;
     }
 
+    public String getAndroidId() {
+        return androidId;
+    }
+
+    public void setAndroidId(String androidId) {
+        this.androidId = androidId;
+    }
+
     @Override
-    public String toString() {
-        return "TcNoValidateDto{" +
-                "firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", birthYear='" + birthYear + '\'' +
-                ", tcNo='" + tcNo + '\'' +
-                '}';
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Person person = (Person) o;
+        return Objects.equals(firstName, person.firstName) && Objects.equals(lastName, person.lastName) && Objects.equals(birthYear, person.birthYear) && Objects.equals(tcNo, person.tcNo) && Objects.equals(androidId, person.androidId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(firstName, lastName, birthYear, tcNo, androidId);
     }
 }

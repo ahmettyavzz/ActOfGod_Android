@@ -1,8 +1,10 @@
 package edu.kocaeli.actofgod_android.api;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import edu.kocaeli.actofgod_android.model.Location;
+import edu.kocaeli.actofgod_android.model.Person;
 import edu.kocaeli.actofgod_android.model.TcNoValidateDto;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -14,5 +16,8 @@ public interface ApiService {
     Call<List<Location>> getLocations();
 
     @POST("tcno-validate")
-    Call<Boolean> tcNoValidate(@Body TcNoValidateDto tcNoValidateDto);
+    Call<Boolean> tcNoValidate(@Body TcNoValidateDto dto);
+
+    @POST("user")
+    Call<Void> savePerson(@Body Person person);
 }

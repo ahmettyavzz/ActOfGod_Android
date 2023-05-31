@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class Person implements Serializable {
+public class PersonDto implements Serializable {
     @SerializedName("firstName")
     private String firstName;
     @SerializedName("lastName")
@@ -17,7 +17,7 @@ public class Person implements Serializable {
     @SerializedName("androidId")
     private String androidId;
 
-    public Person(String firstName, String lastName, String birthYear, String tcNo, String androidId) {
+    public PersonDto(String firstName, String lastName, String birthYear, String tcNo, String androidId) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthYear = birthYear;
@@ -25,7 +25,7 @@ public class Person implements Serializable {
         this.androidId = androidId;
     }
 
-    public Person() {
+    public PersonDto() {
     }
 
     public String getFirstName() {
@@ -72,8 +72,8 @@ public class Person implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Person person = (Person) o;
-        return Objects.equals(firstName, person.firstName) && Objects.equals(lastName, person.lastName) && Objects.equals(birthYear, person.birthYear) && Objects.equals(tcNo, person.tcNo) && Objects.equals(androidId, person.androidId);
+        PersonDto personDto = (PersonDto) o;
+        return Objects.equals(firstName, personDto.firstName) && Objects.equals(lastName, personDto.lastName) && Objects.equals(birthYear, personDto.birthYear) && Objects.equals(tcNo, personDto.tcNo) && Objects.equals(androidId, personDto.androidId);
     }
 
     @Override

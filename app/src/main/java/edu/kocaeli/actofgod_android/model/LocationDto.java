@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 
-public class Location implements Serializable {
+public class LocationDto implements Serializable {
     @SerializedName("id")
     private Long id;
     @SerializedName("name")
@@ -18,7 +18,7 @@ public class Location implements Serializable {
     @SerializedName("districtId")
     private Long districtId;
 
-    public Location(Long id,String name, Double latitude, Double logitude, Long capacity, Long districtId) {
+    public LocationDto(Long id, String name, Double latitude, Double logitude, Long capacity, Long districtId) {
         this.id=id;
         this.name = name;
         this.latitude = latitude;
@@ -27,7 +27,7 @@ public class Location implements Serializable {
         this.districtId = districtId;
     }
 
-    public Location() {
+    public LocationDto() {
     }
 
     public Long getId() {

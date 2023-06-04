@@ -30,6 +30,7 @@ import edu.kocaeli.actofgod_android.model.PersonDto;
 import edu.kocaeli.actofgod_android.model.TcNoValidateDto;
 import edu.kocaeli.actofgod_android.model.route.Route;
 import edu.kocaeli.actofgod_android.model.route.RouteParameters;
+import edu.kocaeli.actofgod_android.service.BackgroundLoggingService;
 import edu.kocaeli.actofgod_android.service.PersonService;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -151,9 +152,17 @@ public class MainActivity extends AppCompatActivity {
         String birthYear = binding.editTextBirthYear.getText().toString();
         String tcNo = binding.editTextTcNo.getText().toString();
 
-        TcNoValidateDto validateDto = new TcNoValidateDto(firstName, lastName, birthYear, tcNo);
+//        TcNoValidateDto validateDto = new TcNoValidateDto(firstName, lastName, birthYear, tcNo);
+//
+//        tcNoValidate(validateDto);
 
-        tcNoValidate(validateDto);
+        // Servisi başlatmak için
+        Intent serviceIntent = new Intent(this, BackgroundLoggingService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            this.startForegroundService(serviceIntent);
+        } else {
+            this.startService(serviceIntent);
+        }
     }
 
     public void showNotification(Context context, String title, String message) {
@@ -215,4 +224,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("test", "closed");
+        Intent serviceIntent = new Intent(this, BackgroundLoggingService.class);
+        this.stopService(serviceIntent);
+    }
 }

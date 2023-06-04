@@ -22,14 +22,14 @@ import java.util.List;
 
 import edu.kocaeli.actofgod_android.R;
 import edu.kocaeli.actofgod_android.databinding.ActivityMapsBinding;
-import edu.kocaeli.actofgod_android.model.Location;
+import edu.kocaeli.actofgod_android.model.LocationDto;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
     LatLng defaultLocation = new LatLng(40.7682, 29.935);
-    List<Location> locationList = new ArrayList<>();
+    List<LocationDto> locationList = new ArrayList<>();
 
 
     @Override
@@ -53,9 +53,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Intent intent = getIntent(); // Intent nesnesi burada alınıyor
 
         ArrayList<Marker> markerList = new ArrayList<>();
-        locationList = (List<Location>) intent.getSerializableExtra("locations");
+        locationList = (List<LocationDto>) intent.getSerializableExtra("locations");
 
-        for (Location l : locationList) {
+        for (LocationDto l : locationList) {
             Marker marker = googleMap.addMarker(new MarkerOptions()
                     .position(new LatLng(l.getLatitude(), l.getLongitude()))
                     .title(l.getName())
@@ -69,7 +69,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public boolean onMarkerClick(@NonNull Marker marker) {
                 LatLng markerPosition = marker.getPosition();
-                Location location = getLocationFromMarker(marker);
+                LocationDto location = getLocationFromMarker(marker);
                 AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
                 builder.setTitle(location.getName());
                 builder.setMessage("Kapasite: " + location.getCapacity()+
@@ -90,8 +90,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private Location getLocationFromMarker(Marker marker) {
-        for (Location location : locationList) {
+    private LocationDto getLocationFromMarker(Marker marker) {
+        for (LocationDto location : locationList) {
             if (location.getId().toString().equals(marker.getSnippet())) {
                 return location;
             }

@@ -1,7 +1,12 @@
 package edu.kocaeli.actofgod_android.view;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -9,6 +14,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,9 +25,11 @@ import java.util.List;
 
 import edu.kocaeli.actofgod_android.api.ApiService;
 import edu.kocaeli.actofgod_android.databinding.ActivityMainBinding;
-import edu.kocaeli.actofgod_android.model.Location;
-import edu.kocaeli.actofgod_android.model.Person;
+import edu.kocaeli.actofgod_android.model.LocationDto;
+import edu.kocaeli.actofgod_android.model.PersonDto;
 import edu.kocaeli.actofgod_android.model.TcNoValidateDto;
+import edu.kocaeli.actofgod_android.model.route.Route;
+import edu.kocaeli.actofgod_android.model.route.RouteParameters;
 import edu.kocaeli.actofgod_android.service.PersonService;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -31,9 +39,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
-    private static final String BASE_URL = "http://192.168.1.49:8080/v1/";
+    private static final String BASE_URL = "http://192.168.1.24:8080/v1/";
     Retrofit retrofit;
-    private List<Location> locations = new ArrayList<>();
+    private List<LocationDto> locations = new ArrayList<>();
     String androidId;
 
     @SuppressLint("HardwareIds")
@@ -44,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         View view = binding.getRoot();
         setContentView(view);
 
-         androidId = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+        androidId = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
 
         Gson gson = new GsonBuilder().setLenient().create();
         retrofit = new Retrofit.Builder()
@@ -53,20 +61,19 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         loadLocations();
-
     }
 
     private void loadLocations() {
         try {
             ApiService apiService = retrofit.create(ApiService.class);
-            Call<List<Location>> call = apiService.getLocations();
-            call.enqueue(new Callback<List<Location>>() {
+            Call<List<LocationDto>> call = apiService.getLocations();
+            call.enqueue(new Callback<List<LocationDto>>() {
                 @Override
-                public void onResponse(Call<List<Location>> call, Response<List<Location>> response) {
+                public void onResponse(Call<List<LocationDto>> call, Response<List<LocationDto>> response) {
                     if (response.isSuccessful()) {
                         if (response.body() != null) {
                             locations.addAll(response.body());
-                            for (Location location : response.body()) {
+                            for (LocationDto location : response.body()) {
                                 System.out.println(location.toString());
                             }
                         }
@@ -76,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onFailure(Call<List<Location>> call, Throwable t) {
+                public void onFailure(Call<List<LocationDto>> call, Throwable t) {
                     Log.e("MainActivity", "Error loading locations" + t);
                 }
             });
@@ -92,10 +99,9 @@ public class MainActivity extends AppCompatActivity {
             call.enqueue(new Callback<Boolean>() {
                 @Override
                 public void onResponse(Call<Boolean> call, Response<Boolean> response) {
-               //     if (response.body()) {
-                    if (true){
+                    if (response.body()) {
                         PersonService personService = new PersonService();
-                        Person toSave = personService.validateToPerson(validateDto, androidId);
+                        PersonDto toSave = personService.validateToPerson(validateDto, androidId);
                         savePerson(toSave);
 
                         Intent intent = new Intent(MainActivity.this, MapsActivity.class);
@@ -116,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void savePerson(Person person) {
+    public void savePerson(PersonDto person) {
         try {
             ApiService apiService = retrofit.create(ApiService.class);
             Call<Void> call = apiService.savePerson(person);
@@ -147,23 +153,66 @@ public class MainActivity extends AppCompatActivity {
 
         TcNoValidateDto validateDto = new TcNoValidateDto(firstName, lastName, birthYear, tcNo);
 
-//        if (tcNoValidate(validateDto)){
-//        double latitude = 40.8010419;
-//        double longitude = 29.9496113;
-//        String uri = "geo:" + latitude + "," + longitude;
-//        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-//        intent.setPackage("com.google.android.apps.maps");
-//
-//
-//        startActivity(intent);
-//        }else {
-//            Toast.makeText(getApplicationContext(), "Lütfen doğru ve eksiksiz bilgi giriniz!", Toast.LENGTH_SHORT).show();
-//        }
-
-        System.out.println("!!!!!!!!!!!!!!!!!!!");
         tcNoValidate(validateDto);
-        System.out.println("!!!!!!!!!!!!!!!!!!");
+    }
 
+    public void showNotification(Context context, String title, String message) {
+        String CHANNEL_ID = "my_channel_id";
+        String CHANNEL_NAME = "My Channel";
+        String CHANNEL_DESCRIPTION = "My Channel Description";
+        NotificationCompat.Builder builder;
+        NotificationManager notificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel =notificationManager.getNotificationChannel(CHANNEL_ID);
+
+            if (channel==null){
+
+                channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
+                channel.setDescription(CHANNEL_DESCRIPTION);
+                notificationManager.createNotificationChannel(channel);
+            }
+            builder=new NotificationCompat.Builder(context, CHANNEL_ID);
+            builder.setContentTitle(title)
+                    .setContentText(message)
+                    .setSmallIcon(android.R.drawable.ic_dialog_info)
+                    .setAutoCancel(true);
+        }
+        else {
+            builder=new NotificationCompat.Builder(context, CHANNEL_ID);
+            builder.setContentTitle(title)
+                    .setContentText(message)
+                    .setSmallIcon(android.R.drawable.ic_dialog_info)
+                    .setAutoCancel(true)
+                    .setPriority(Notification.PRIORITY_HIGH);
+        }
+
+        notificationManager.notify(1, builder.build());
+    }
+
+    public void route() {
+        ApiService apiService = retrofit.create(ApiService.class);
+
+        Call<Route> call = apiService.getRoute(new RouteParameters(49.75332, 6.50322, 49.71482, 6.49944));
+        call.enqueue(new Callback<Route>() {
+            @Override
+            public void onResponse(Call<Route> call, Response<Route> response) {
+                if (response.isSuccessful()) {
+                    Route roadData = response.body();
+                    System.out.println(roadData.getDistance());
+                    System.out.println(roadData.getDuration());
+                } else {
+                    System.out.println("API Request failed. Error: " + response.errorBody());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Route> call, Throwable t) {
+                System.out.println("API Request failed. Error: " + t.getMessage());
+            }
+        });
     }
 
 }

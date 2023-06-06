@@ -85,7 +85,6 @@
                 android:layout_marginTop="30dp"
                 android:backgroundTint="@color/purple"
                 android:text="Giriş Yap"
-                android:onClick="connect"
                 android:textSize="18sp"
                 app:cornerRadius="20dp" />
 

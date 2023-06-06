@@ -11,6 +11,8 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
 
 public interface ApiService {
     @GET("location")
@@ -24,4 +26,7 @@ public interface ApiService {
 
     @POST("route")
     Call<Route> getRoute(@Body RouteParameters routeParameters);
+
+    @GET("location/{id}")
+    Call<LocationDto> getLocationById(@Path("id") Long id);
 }

@@ -6,31 +6,31 @@ import java.io.Serializable;
 
 public class Route implements Serializable {
     @SerializedName("distance")
-    private String distance;
+    private int distance;
     @SerializedName("duration")
-    private String duration;
+    private int duration;
 
     public Route() {
     }
 
-    public Route(String distance, String duration) {
+    public Route(int distance, int duration) {
         this.distance = distance;
         this.duration = duration;
     }
 
-    public String getDistance() {
+    public int getDistance() {
         return distance;
     }
 
-    public void setDistance(String distance) {
+    public void setDistance(int distance) {
         this.distance = distance;
     }
 
-    public String getDuration() {
+    public int getDuration() {
         return duration;
     }
 
-    public void setDuration(String duration) {
+    public void setDuration(int duration) {
         this.duration = duration;
     }
 }

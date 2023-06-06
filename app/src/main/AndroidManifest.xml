@@ -3,9 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools" >
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission
-        android:name="android.permission.ACCESS_FINE_LOCATION"
-        tools:ignore="CoarseFineLocation" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
@@ -35,7 +37,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAd4VpzsRvbAEE2vXpKYUud_J0tDxW8zmE" />
+            android:value="YOUR_API_KEY" />
 
         <activity
             android:name=".view.MapsActivity"
@@ -51,7 +53,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".service.BackgroundLoggingService"
+            android:name=".service.BackgroundLocationService"
             android:enabled="true"
             android:exported="false" />
     </application>

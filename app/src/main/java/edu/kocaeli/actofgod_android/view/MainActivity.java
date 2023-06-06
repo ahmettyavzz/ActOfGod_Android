@@ -1,21 +1,28 @@
 package edu.kocaeli.actofgod_android.view;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -28,9 +35,7 @@ import edu.kocaeli.actofgod_android.databinding.ActivityMainBinding;
 import edu.kocaeli.actofgod_android.model.LocationDto;
 import edu.kocaeli.actofgod_android.model.PersonDto;
 import edu.kocaeli.actofgod_android.model.TcNoValidateDto;
-import edu.kocaeli.actofgod_android.model.route.Route;
-import edu.kocaeli.actofgod_android.model.route.RouteParameters;
-import edu.kocaeli.actofgod_android.service.BackgroundLoggingService;
+import edu.kocaeli.actofgod_android.service.BackgroundLocationService;
 import edu.kocaeli.actofgod_android.service.PersonService;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -41,9 +46,16 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private static final String BASE_URL = "http://192.168.1.24:8080/v1/";
-    Retrofit retrofit;
+    public static Retrofit retrofit;
     private List<LocationDto> locations = new ArrayList<>();
     String androidId;
+
+    public static LocationDto destination = null;
+    public static Location currentLocation;
+
+    ActivityResultLauncher<String> permissionLauncher;
+    LocationManager locationManager;
+    LocationListener locationListener;
 
     @SuppressLint("HardwareIds")
     @Override
@@ -62,6 +74,39 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         loadLocations();
+
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                currentLocation = location;
+            }
+        };
+
+        registerLauncher();
+        checkLocationPermission();
+
+        binding.login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String firstName = binding.editTextFirstName.getText().toString();
+                String lastName = binding.editTextLastName.getText().toString();
+                String birthYear = binding.editTextBirthYear.getText().toString();
+                String tcNo = binding.editTextTcNo.getText().toString();
+
+                TcNoValidateDto validateDto = new TcNoValidateDto(firstName, lastName, birthYear, tcNo);
+
+                tcNoValidate(validateDto);
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("test", "closed");
+        Intent serviceIntent = new Intent(this, BackgroundLocationService.class);
+        this.stopService(serviceIntent);
     }
 
     private void loadLocations() {
@@ -93,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void tcNoValidate(TcNoValidateDto validateDto) {
+    private void tcNoValidate(TcNoValidateDto validateDto) {
         try {
             ApiService apiService = retrofit.create(ApiService.class);
             Call<Boolean> call = apiService.tcNoValidate(validateDto);
@@ -106,7 +151,15 @@ public class MainActivity extends AppCompatActivity {
                         savePerson(toSave);
 
                         Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-                         intent.putExtra("locations", (Serializable) locations);
+                        intent.putExtra("locations", (Serializable) locations);
+                        if (currentLocation == null) {
+                            Toast.makeText(MainActivity.this, "Konum alınıyor...", Toast.LENGTH_SHORT).show();
+                            try {
+                                Thread.sleep(4000);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                         startActivity(intent);
                     } else {
                         Toast.makeText(MainActivity.this, "Lütfen doğru ve eksiksiz bilgi giriniz!", Toast.LENGTH_SHORT).show();
@@ -123,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void savePerson(PersonDto person) {
+    private void savePerson(PersonDto person) {
         try {
             ApiService apiService = retrofit.create(ApiService.class);
             Call<Void> call = apiService.savePerson(person);
@@ -146,89 +199,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void connect(View view) {
-        String firstName = binding.editTextFirstName.getText().toString();
-        String lastName = binding.editTextLastName.getText().toString();
-        String birthYear = binding.editTextBirthYear.getText().toString();
-        String tcNo = binding.editTextTcNo.getText().toString();
-
-//        TcNoValidateDto validateDto = new TcNoValidateDto(firstName, lastName, birthYear, tcNo);
-//
-//        tcNoValidate(validateDto);
-
-        // Servisi başlatmak için
-        Intent serviceIntent = new Intent(this, BackgroundLoggingService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            this.startForegroundService(serviceIntent);
-        } else {
-            this.startService(serviceIntent);
-        }
-    }
-
-    public void showNotification(Context context, String title, String message) {
-        String CHANNEL_ID = "my_channel_id";
-        String CHANNEL_NAME = "My Channel";
-        String CHANNEL_DESCRIPTION = "My Channel Description";
-        NotificationCompat.Builder builder;
-        NotificationManager notificationManager =
-                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel =notificationManager.getNotificationChannel(CHANNEL_ID);
-
-            if (channel==null){
-
-                channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
-                channel.setDescription(CHANNEL_DESCRIPTION);
-                notificationManager.createNotificationChannel(channel);
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                Snackbar.make(binding.getRoot(), "Permission needed for maps", Snackbar.LENGTH_INDEFINITE)
+                        .setAction("Give Permission", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+                            }
+                        }).show();
+            } else {
+                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
             }
-            builder=new NotificationCompat.Builder(context, CHANNEL_ID);
-            builder.setContentTitle(title)
-                    .setContentText(message)
-                    .setSmallIcon(android.R.drawable.ic_dialog_info)
-                    .setAutoCancel(true);
         }
         else {
-            builder=new NotificationCompat.Builder(context, CHANNEL_ID);
-            builder.setContentTitle(title)
-                    .setContentText(message)
-                    .setSmallIcon(android.R.drawable.ic_dialog_info)
-                    .setAutoCancel(true)
-                    .setPriority(Notification.PRIORITY_HIGH);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
         }
-
-        notificationManager.notify(1, builder.build());
     }
 
-    public void route() {
-        ApiService apiService = retrofit.create(ApiService.class);
-
-        Call<Route> call = apiService.getRoute(new RouteParameters(49.75332, 6.50322, 49.71482, 6.49944));
-        call.enqueue(new Callback<Route>() {
+    private void registerLauncher() {
+        permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
             @Override
-            public void onResponse(Call<Route> call, Response<Route> response) {
-                if (response.isSuccessful()) {
-                    Route roadData = response.body();
-                    System.out.println(roadData.getDistance());
-                    System.out.println(roadData.getDuration());
-                } else {
-                    System.out.println("API Request failed. Error: " + response.errorBody());
+            public void onActivityResult(Boolean result) {
+                if(result) {
+
+                }
+                else {
+                    Toast.makeText(MainActivity.this, "Permission needed!", Toast.LENGTH_SHORT).show();
                 }
             }
-
-            @Override
-            public void onFailure(Call<Route> call, Throwable t) {
-                System.out.println("API Request failed. Error: " + t.getMessage());
-            }
         });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d("test", "closed");
-        Intent serviceIntent = new Intent(this, BackgroundLoggingService.class);
-        this.stopService(serviceIntent);
     }
 }

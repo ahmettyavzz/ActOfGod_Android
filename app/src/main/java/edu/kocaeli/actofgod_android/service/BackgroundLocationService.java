@@ -64,7 +64,7 @@ public class BackgroundLocationService extends Service {
                                         if (response.isSuccessful()) {
                                             LocationDto locationDto = response.body();
                                             if (locationDto.getCapacity() == 0) {
-                                                showNotification(getApplicationContext(), "Uyarı!", "Gitmekte olduğunuz sığınma noktasının konumu dolmuştur.");
+                                                showNotification(getApplicationContext(), "Uyarı!", "Gitmekte olduğunuz sığınma noktasının kapasitesi dolmuştur.");
                                             }
 
                                             UpdateLocationDto updateLocationDto = new UpdateLocationDto();

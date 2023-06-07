@@ -5,6 +5,7 @@ import java.util.List;
 import edu.kocaeli.actofgod_android.model.LocationDto;
 import edu.kocaeli.actofgod_android.model.PersonDto;
 import edu.kocaeli.actofgod_android.model.TcNoValidateDto;
+import edu.kocaeli.actofgod_android.model.UpdateLocationDto;
 import edu.kocaeli.actofgod_android.model.route.Route;
 import edu.kocaeli.actofgod_android.model.route.RouteParameters;
 import retrofit2.Call;
@@ -29,4 +30,7 @@ public interface ApiService {
 
     @GET("location/{id}")
     Call<LocationDto> getLocationById(@Path("id") Long id);
+
+    @PUT("location/{id}")
+    Call<LocationDto> updateLocation(@Path("id") Long id, @Body UpdateLocationDto updateLocationDto);
 }

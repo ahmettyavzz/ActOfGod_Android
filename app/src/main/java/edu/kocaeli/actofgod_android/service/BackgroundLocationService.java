@@ -17,6 +17,7 @@ import androidx.core.app.NotificationCompat;
 import edu.kocaeli.actofgod_android.R;
 import edu.kocaeli.actofgod_android.api.ApiService;
 import edu.kocaeli.actofgod_android.model.LocationDto;
+import edu.kocaeli.actofgod_android.model.UpdateLocationDto;
 import edu.kocaeli.actofgod_android.model.route.Route;
 import edu.kocaeli.actofgod_android.model.route.RouteParameters;
 import edu.kocaeli.actofgod_android.view.MainActivity;
@@ -64,6 +65,29 @@ public class BackgroundLocationService extends Service {
                                             LocationDto locationDto = response.body();
                                             if (locationDto.getCapacity() == 0) {
                                                 showNotification(getApplicationContext(), "Uyarı!", "Gitmekte olduğunuz sığınma noktasının konumu dolmuştur.");
+                                            }
+
+                                            UpdateLocationDto updateLocationDto = new UpdateLocationDto();
+                                            updateLocationDto.setName(locationDto.getName());
+                                            updateLocationDto.setLatitude(locationDto.getLatitude());
+                                            updateLocationDto.setLongitude(locationDto.getLongitude());
+                                            updateLocationDto.setCapacity(locationDto.getCapacity() - 1);
+                                            updateLocationDto.setDistrictId(locationDto.getDistrictId());
+                                            if (roadData.getDistance() < 20 && locationDto.getCapacity() > 0) {
+                                                Call<LocationDto> updateLocation = apiService.updateLocation(locationDto.getId(), updateLocationDto);
+                                                updateLocation.enqueue(new Callback<LocationDto>() {
+                                                    @Override
+                                                    public void onResponse(Call<LocationDto> call, Response<LocationDto> response) {
+                                                        if (response.isSuccessful()) {
+                                                            Log.d("UPDATE", "güncellendi");
+                                                        }
+                                                    }
+
+                                                    @Override
+                                                    public void onFailure(Call<LocationDto> call, Throwable t) {
+
+                                                    }
+                                                });
                                             }
                                         }
                                     }
